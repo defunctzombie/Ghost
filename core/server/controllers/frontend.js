@@ -15,6 +15,7 @@ var moment      = require('moment'),
     template    = require('../helpers/template'),
     errors      = require('../errors'),
     cheerio     = require('cheerio'),
+    downsize    = require('downsize'),
     routeMatch  = require('path-match')(),
 
     frontendControllers,
@@ -426,6 +427,10 @@ frontendControllers = {
         });
     },
     rss: function (req, res, next) {
+        function isShorthand() {
+            return req.query.short;
+        }
+
         function isPaginated() {
             return req.route.path.indexOf(':page') !== -1;
         }
@@ -569,6 +574,9 @@ frontendControllers = {
                         });
 
                         item.description = htmlContent.html();
+                        if (isShorthand()) {
+                            item.description = downsize(item.description, { words: 50, append: '...' });
+                        }
                         feed.item(item);
                     });
                 }).then(function () {
